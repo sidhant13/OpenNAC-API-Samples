@@ -92,7 +92,7 @@ def CreateApp(authToken, switch, parser):
     RemoveZombieApps(authToken, switch)
 
     url = odlsBaseUrl + '/applications'
-    payload = {'name': 'FirstSdnApp - Example ODL-S for switch: ' + switch,
+    payload = {'name': 'FirstSdnApp/App1 - Example ODL-S for switch: ' + switch,
                 'scope': {'vnets':[switch]}}
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
