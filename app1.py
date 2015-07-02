@@ -46,9 +46,51 @@ def GetAuthToken(user, password, parser):
 
     return authToken;
 
+
+def GetApps(authToken):
+    url = odlsBaseUrl + '/applications'
+    headers = {'content-type': 'application/json',
+               'Authorization': 'bearer ' + authToken}
+    r = requests.get(url, headers=headers)
+    if ((r.status_code < 200) | (r.status_code > 299)):
+        print "Error getting applications list: " + r.text
+        sys.exit()
+    else:
+        return r
+
+def GetAppInfo(authToken, appId):
+    url = odlsBaseUrl + '/applications/' + appId
+    headers = {'content-type': 'application/json',
+               'Authorization': 'bearer ' + authToken}
+    r = requests.get(url, headers=headers)
+    if ((r.status_code < 200) | (r.status_code > 299)):
+        print "Error getting application info: " + r.text
+        sys.exit()
+    else:
+        return r
+
+def RemoveZombieApps(authToken, switch):
+    # Removes any old applications currently connected to the target switch.  Only
+    # one application may be connected to a switch.
+    apps = GetApps(authToken)
+    for a in apps.json():
+        appInfo = GetAppInfo(authToken, a['id'])
+        appInfo = appInfo.json()
+        appScope = appInfo['scope']
+        appVnets = appScope['vnets']
+        for v in appVnets:
+            if (v == switch):
+                print "Deleting a zombie application: " + a['id'] + ", " + a['name']
+                DeleteApp(authToken,a['id'])
+                break
+
+
+
 def CreateApp(authToken, switch, parser):
     # This calls the  api to create an application
     # RETURNS: app identifier
+    RemoveZombieApps(authToken, switch)
+
     url = odlsBaseUrl + '/applications'
     payload = {'name': 'FirstSdnApp - Example ODL-S for switch: ' + switch,
                 'scope': {'vnets':[switch]}}
