@@ -175,7 +175,9 @@ def GetCommandLineParser():
  
 def main(): 
     # The version of the application
-    version="1.0"
+    # 1.0 - initial version
+    # 1.1 - added code to remove apps for selected vnet before creating new app
+    version="1.1"
     print "ODL-S App1 (FirstSdnApp)"
     print "Version: " + version
     print "A very simple 'hello world' application that uses ODL-S."
