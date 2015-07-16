@@ -87,14 +87,17 @@ def GetAuthToken(user, password):
 
     return authToken;
 
-def CreateApp(authToken, switch, parser):
+def CreateApp(authToken, switches, parser):
     # This removes any zombie apps and then calls the api to create an application
     # RETURNS: app identifier
-    RemoveZombieApps(authToken, switch)
+    RemoveZombieApps(authToken, switches)
 
+    print switches
+
+    switchesStr = ', '.join(switches)
     url = odlsBaseUrl + '/applications'
-    payload = {'name': 'ODL-S Demo App4 - Connected to switch: ' + switch,
-                'scope': {'vnets':[switch]}}
+    payload = {'name': 'ODL-S Demo App4 - Connected to switch: ' + switchesStr,
+                'scope': {'vnets':switches}}
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
     appId = requests.post(url, data=json.dumps(payload), headers=headers)
@@ -236,7 +239,7 @@ def GetPolicyInfo(authToken, policyId):
     else:
         return r
 
-def RemoveZombieApps(authToken, switch):
+def RemoveZombieApps(authToken, switches):
     # Removes any old applications currently connected to the target switch.  Only
     # one application may be connected to a switch.
     apps = GetApps(authToken)
@@ -246,7 +249,7 @@ def RemoveZombieApps(authToken, switch):
         appScope = appInfo['scope']
         appVnets = appScope['vnets']
         for v in appVnets:
-            if (v == switch):
+            if (v in switches):
                 print "Deleting a zombie application: " + a['id'] + ", " + a['name']
                 DeleteApp(authToken,a['id'])
                 break
@@ -268,8 +271,8 @@ def GetCommandLineParser():
         help='your ODL-S Application id.  Go to sdn-developer.elbrys.com, logon, select "My Account" in top right.')
     parser.add_argument('--secret',required=True,
         help='your ODL-S Application secret. Go to sdn-developer.elbrys.com, logon, select "My Account", select "Edit Account", select the "eyeball" icon next to password.')
-    parser.add_argument('--switch',required=True,
-        help='the Datapath Id (DPID) for the switch connected in ODL-S dashboard without ":" e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in "Devices" table')
+    parser.add_argument('switches', metavar='switchId', nargs='+',
+        help='Datapath Id (DPID) or vNet ID (Tallac) for the switches/APs connected in ODL-S dashboard without : e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in Devices table')
     return parser
 
 def UpdateEndpoints(authToken, appId, endpoints):
@@ -399,8 +402,8 @@ def UserCmdChangePolicy(authToken, appId, endpoints, selectedEp, policies):
                 pList = []
                 idx = 0
                 for p in policies:
-                    pList.insert(idx,p) #insert p at idx - insert inserts before idx+1
                     policy = policies.get(p)
+                    pList.insert(idx,policy['id']) #insert p at idx - insert inserts before idx+1
                     print "    " + str(idx) + ": " + policy['name'] + ", " + policy['id'] 
                     idx=idx+1
                 selectedIdx = raw_input("Enter number of policy and enter: ")
@@ -410,6 +413,8 @@ def UserCmdChangePolicy(authToken, appId, endpoints, selectedEp, policies):
                 else:
                     done = True
             selectedPolicyId=pList[int(selectedIdx)]
+            print "Endpoint ID " + ep['id']
+            print "Policy ID" + selectedPolicyId
             ChangeEndpointPolicy(authToken, ep['id'], selectedPolicyId)
 
 
@@ -418,9 +423,9 @@ def UserCmdRestartApp(authToken, args, parser, appId, thread):
     # It returns the result from StartApplication(), see that function for its return value.
     StopApplication(authToken, appId, thread)
     appInfo = StartApplication(args, parser)
-    print "    Application restarted.  All endpoints have been forgotten and will appear "
+    print "\n    Application restarted.  All endpoints have been forgotten and will appear "
     print " as unmanaged endpoints again when they pass their first packet.  You will need "
-    print " to set their policies again.  There are new identifiers for application, subscription and policies."
+    print " to set their policies again.  There are new identifiers for application, subscription and policies.\n\n"
     return appInfo
 
 
@@ -557,7 +562,7 @@ def StartApplication(args, parser):
         authToken = GetAuthToken(args.id,args.secret)
         print "    ...auth token obtained: " + authToken
         print 'Creating application...'
-        appId = CreateApp(authToken, args.switch,parser)
+        appId = CreateApp(authToken, args.switches ,parser)
         print "    ...application created with id:" + appId 
         print " "
         print 'Reading policies.json file...'

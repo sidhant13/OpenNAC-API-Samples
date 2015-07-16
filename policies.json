@@ -10,5 +10,12 @@
   "default": false, 
   "rules": [
     {"actions": [
-      {"type": "drop"} ] } ] } 
+      {"type": "drop"} ] } ] }, 
+{
+  "name": "Redirect-to-elbrys-dot-com", 
+  "default": false, 
+  "rules": [
+    {"actions": [
+      {"type": "httpRedirect",
+       "url": "http://www.elbrys.com"} ] } ] } 
 ]
