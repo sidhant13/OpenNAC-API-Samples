@@ -1,0 +1,14 @@
+[
+{
+  "name": "unblocked", 
+  "default": false, 
+  "rules": [
+    {"actions": [
+      {"type": "pass"} ] } ] }, 
+{
+  "name": "blocked", 
+  "default": false, 
+  "rules": [
+    {"actions": [
+      {"type": "drop"} ] } ] } 
+]
