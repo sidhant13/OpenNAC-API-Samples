@@ -516,6 +516,9 @@ class ReceiveOdlsEvents(threading.Thread):
                             elif split[1] in (" unmanagedEndPoint"):
                                 if (self.logging()):
                                     print "                -->ODL-S event: unmanaged endpoint connected, collecting its data..."
+                            elif split[1] in (" uriTrack"):
+                                if (self.logging()):
+                                    print "                -->ODL-S event: URI tracking data being delivered, collecting its data..."
                 # if we received 'data:' lines           
                 if (len(jsonBuffer) > 0):
                     r = json.loads(jsonBuffer)
@@ -528,6 +531,14 @@ class ReceiveOdlsEvents(threading.Thread):
                         endpointMac = data['mac']
                         if (self.logging()):
                             print "                -->ODL-S event:  unmanaged endpoint collected and added to list of endpoints: " + endpointMac
+                    elif typeInfo in ("uriTrack"):
+                        data = r['data']
+                        endpoint = data['endpoint']
+                        uris = data['uris']
+                        if (self.logging()):
+                            print "                -->ODL-S event:  enpoint " + endpointMac + " visited the following URIs: "
+                            for uri in uris:
+                                print "                        " + uri["uri"]
         except Exception as inst:
             print " "
             print "Exception in ODL-S Events Thread.  Terminating application." 

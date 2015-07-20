@@ -17,5 +17,13 @@
   "rules": [
     {"actions": [
       {"type": "httpRedirect",
-       "url": "http://www.w3.org"} ] } ] }
+       "url": "http://www.w3.org"} ] } ] }, 
+{
+  "name": "unblocked-Track-URIs-Visited_toggle_event_logging_to_see", 
+  "default": false, 
+  "rules": [
+    {"actions": [
+      {"type": "pass"},
+      {"type": "uriTrack"}
+        ] } ] }
 ]
