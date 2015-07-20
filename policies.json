@@ -12,10 +12,10 @@
     {"actions": [
       {"type": "drop"} ] } ] }, 
 {
-  "name": "Redirect-to-elbrys-dot-com", 
+  "name": "Redirect-to-w3.org", 
   "default": false, 
   "rules": [
     {"actions": [
       {"type": "httpRedirect",
-       "url": "http://www.elbrys.com"} ] } ] } 
+       "url": "http://www.w3.org"} ] } ] }
 ]
