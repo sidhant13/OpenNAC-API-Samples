@@ -67,6 +67,7 @@ signal.signal(signal.SIGINT, interuppt_handler)
 def GetAuthToken(user, password):
     # This calls the  api to create an authorization token to make other calls
     # RETURNS: authorization token
+    global odlsBaseUrl
     url = odlsBaseUrl + '/auth/token'
     print "GetAuthToken: " + odlsBaseUrl
     headers = {'content-type': 'application/json'}
@@ -88,6 +89,7 @@ def GetAuthToken(user, password):
     return authToken;
 
 def CreateApp(authToken, switches, parser):
+    global odlsBaseUrl
     # This removes any zombie apps and then calls the api to create an application
     # RETURNS: app identifier
     RemoveZombieApps(authToken, switches)
@@ -118,6 +120,7 @@ def CreateApp(authToken, switches, parser):
 
 
 def CreatePolicy(authToken, appId, payload):
+    global odlsBaseUrl
     # This calls the  api to create a
     # policy for the application.  
     # The policy is defined by payload which is the JSON body defining the
@@ -148,6 +151,7 @@ def CreatePolicy(authToken, appId, payload):
 
 
 def CreateSubscription(authToken, appId):
+    global odlsBaseUrl
     # This calls the ODL-S api to create a subscription
     # RETURNS: subscription identifier
     url = odlsBaseUrl + '/applications/' + appId + '/subscriptions'
@@ -171,6 +175,7 @@ def CreateSubscription(authToken, appId):
     return subId;
 
 def GetApps(authToken):
+    global odlsBaseUrl
     url = odlsBaseUrl + '/applications'
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -182,6 +187,7 @@ def GetApps(authToken):
         return r
 
 def GetAppInfo(authToken, appId):
+    global odlsBaseUrl
     url = odlsBaseUrl + '/applications/' + appId
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -193,6 +199,7 @@ def GetAppInfo(authToken, appId):
         return r
 
 def GetEndpointInfo(authToken, appId, endpointId):
+    global odlsBaseUrl
     url = odlsBaseUrl + '/applications/' + appId + '/endpoints/' + endpointId
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -204,6 +211,7 @@ def GetEndpointInfo(authToken, appId, endpointId):
         return r
 
 def DeleteEndpoint(authToken, appId, endpointId):
+    global odlsBaseUrl
     url = odlsBaseUrl + '/applications/' + appId + '/endpoints/' + endpointId
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -216,6 +224,7 @@ def DeleteEndpoint(authToken, appId, endpointId):
 
 
 def ChangeEndpointPolicy(authToken, endpointId, policyId):
+    global odlsBaseUrl
     url = odlsBaseUrl + '/endpoints/' + endpointId + '/policy'
     payload = {'policy': policyId} 
     headers = {'content-type': 'application/json',
@@ -229,6 +238,7 @@ def ChangeEndpointPolicy(authToken, endpointId, policyId):
 
 
 def GetPolicyInfo(authToken, policyId):
+    global odlsBaseUrl
     url = odlsBaseUrl + '/policies/' + policyId
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -256,6 +266,7 @@ def RemoveZombieApps(authToken, switches):
 
 
 def DeleteApp(authToken, appId):
+    global odlsBaseUrl
     # This calls the  api to delete an application
     # RETURNS: app identifier
     url = odlsBaseUrl + '/applications/' + appId
@@ -273,6 +284,10 @@ def GetCommandLineParser():
         help='your ODL-S Application secret. Go to sdn-developer.elbrys.com, logon, select "My Account", select "Edit Account", select the "eyeball" icon next to password.')
     parser.add_argument('switches', metavar='switchId', nargs='+',
         help='Datapath Id (DPID) or vNet ID (Tallac) for the switches/APs connected in ODL-S dashboard without : e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in Devices table')
+    parser.add_argument('--server',required=False, default="54.85.212.52",
+        help='The IP address of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
+    parser.add_argument('--port',required=False, default="8080",
+        help='The TCP port number of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
     return parser
 
 def UpdateEndpoints(authToken, appId, endpoints):
@@ -464,6 +479,7 @@ class ReceiveOdlsEvents(threading.Thread):
         return self._log.isSet()
     
     def run(self):
+        global odlsBaseUrl
         # This calls a subscription url as a streaming http interface.
         # It is waiting for an event message from ODL-S.
         # ODL-S sends the event message one line at a time across the stream.
@@ -631,6 +647,7 @@ def StopApplication(authToken, appId, thread):
         thread.join()
  
 def main(): 
+    global odlsBaseUrl
     # The version of the application
     #  1.0 - initial version
     version="1.0"
@@ -642,6 +659,10 @@ def main():
     #    Command Line Processing
     parser=GetCommandLineParser()
     args = parser.parse_args()
+
+    
+    odlsBaseUrl = "http://"+args.server+":"+args.port+"/ape/v1"
+    print "ODL-S API is at: " + odlsBaseUrl
 
     # --------------------------------
     #    Main application
