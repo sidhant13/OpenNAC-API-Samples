@@ -5,7 +5,7 @@
    - An OpenFlow switch connected to it (virtual (Mininet) switch will work)
        - Follow the [Quickstart](https://github.com/Elbrys/SDN-Developer-Lab/wiki)
 
-# ODL-S-Sample-Apps
+# Sample Applications for OpenNAC API
 Sample Applications that work with Elbrys SDN Developer Lab and the OpenNAC API.  See http://dev.elbrys.com   For RESTCONF API sample apps go to [Wiki](https://github.com/Elbrys/SDN-Developer-Lab/wiki).
 
 * app1 -- This is an extremely simple application to demonstrate basics.  It uses default policy to show how traffic may be unblocked for endpoints.
