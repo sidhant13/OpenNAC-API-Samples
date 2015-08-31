@@ -6,7 +6,7 @@
        - Follow the [Quickstart](https://github.com/Elbrys/SDN-Developer-Lab/wiki)
 
 # Sample Applications for OpenNAC API
-Sample Applications that work with Elbrys SDN Developer Lab and the OpenNAC API.  See http://dev.elbrys.com   For RESTCONF API sample apps go to [Wiki](https://github.com/Elbrys/SDN-Developer-Lab/wiki).
+Sample Applications that work with Elbrys SDN Developer Lab and the OpenNAC API.  See http://dev.elbrys.com .  For RESTCONF API sample apps go to [Wiki](https://github.com/Elbrys/SDN-Developer-Lab/wiki).
 
 * app1 -- This is an extremely simple application to demonstrate basics.  It uses default policy to show how traffic may be unblocked for endpoints.
 * app2 -- This application demonstrates a subscription using a synchronous application flow.  It listens on a subscription outputing what it receives.  If it receives an 'unmanaged endpoint' event then it will demonstrate setting a policy for that endpoint that allows it to become unblocked.
