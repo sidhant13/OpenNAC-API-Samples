@@ -15,14 +15,14 @@ DESCRIPTION:
     This is an intermediate complexity application that utilizes multi-threading.
 
     The application is associated with the switch you configured on the command line.
-     You must have configured that switch to use ODL-S as its openflow controller per 
+     You must have configured that switch to use your SDN Developer Lab controller as its openflow controller per 
      the instructions on dev.elbrys.com. Any endpoint that does not yet have an associated 
-     policy (one you gave it using this application - see below) will be detected by ODL-S 
-     and will cause ODL-S to generate an 'unmanaged endpoint' event.
+     policy (one you gave it using this application - see below) will be detected  
+     and will cause an 'unmanaged endpoint' event.
     
-    This application has created a subscription to ODL-S events.  It will receive events 
-     from your switch.  IF ODL-S Event logging is ENABLED (see below): it will print a message to the screen 
-     when it receives ODL-S events. When a new 'unmanaged endpoint' event occurs it will print a message to 
+    This application has created a subscription to events.  It will receive events 
+     from your switch.  IF event logging is ENABLED (see below): it will print a message to the screen 
+     when it receives events. When a new 'unmanaged endpoint' event occurs it will print a message to 
      the screen as well as add that endpoint to its list of known endpoints.  Event logging is disabled by default.
    
     All traffic for unmanaged endpoints will be blocked until you associate a policy to the endpoint.
@@ -31,15 +31,15 @@ DESCRIPTION:
      a target endpoint and then do any number of actions to that endpoint, including 
      associating a policy to it.
     
-    While this application is running, you can go to your ODL-S dashboard (sdn-developer.elbrys.com) 
+    While this application is running, you can go to sdn-developer.elbrys.com
      and refresh the screen and you will see this application listed in the applications table.  In addition
-     the switch you configured on the command line should indicate it is active on the ODL-S dashboard
+     the switch you configured on the command line should indicate it is active on SDN Developer Lab screen
      by being displayed in green.
     
-    Enable ODL-S event logging, connect one or more user devices (laptop, tablet, phone) to ports on your network device. 
+    Enable event logging, connect one or more user devices (laptop, tablet, phone) to ports on your network device. 
      After you connect the device, cause it to send network traffic (ping, web browse, etc) 
-     You should see an ODL-S event indicating an 'unmanaged endpoint' with a MAC address 
-     that matches the device you have connected to the switch (if ODL-S event logging is enabled).
+     You should see an event indicating an 'unmanaged endpoint' with a MAC address 
+     that matches the device you have connected to the switch (if event logging is enabled).
 """
 
 import sys, os, errno, signal 
@@ -89,7 +89,7 @@ def CreateApp(authToken, switch, parser):
     RemoveZombieApps(authToken, switch)
 
     url = odlsBaseUrl + '/applications'
-    payload = {'name': 'ODL-S Demo App3 - Connected to switch: ' + switch,
+    payload = {'name': 'Demo App3 - Connected to switch: ' + switch,
                 'scope': {'vnets':[switch]}}
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -143,7 +143,7 @@ def CreatePolicy(authToken, appId, payload):
 
 def CreateSubscription(authToken, appId):
     global odlsBaseUrl
-    # This calls the ODL-S api to create a subscription
+    # This calls the OpenNAC api to create a subscription
     # RETURNS: subscription identifier
     url = odlsBaseUrl + '/applications/' + appId + '/subscriptions'
     payload = {'type': 'httpSSE'}
@@ -159,7 +159,7 @@ def CreateSubscription(authToken, appId):
     else:
         print " "
         print "!! Error !!"  
-        print "    Unable to create subscription to ODL-S."
+        print "    Unable to create subscription."
         print r.text
         sys.exit()
 
@@ -270,20 +270,20 @@ def GetCommandLineParser():
     # This method will process the command line parameters
     parser = argparse.ArgumentParser(description='Simple SDN Application to block/unblock devices connected to switch.')
     parser.add_argument('--id',required=True,
-        help='your ODL-S Application id.  Go to sdn-developer.elbrys.com, logon, select "My Account" in top right.')
+        help='your Application id.  Go to sdn-developer.elbrys.com, logon, find SDN App ID on SDN Applications table.')
     parser.add_argument('--secret',required=True,
-        help='your ODL-S Application secret. Go to sdn-developer.elbrys.com, logon, select "My Account", select "Edit Account", select the "eyeball" icon next to password.')
+        help='your Application secret. Go to sdn-developer.elbrys.com, logon, find SDN App Secret on SDN Applications table, select the "eyeball" icon next to password.')
     parser.add_argument('--switch',required=True,
-        help='the Datapath Id (DPID) for the switch connected in ODL-S dashboard without ":" e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in "Devices" table')
+        help='the Datapath Id (DPID) for the switch connected  without ":" e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in "Devices" table')
     parser.add_argument('--server',required=True, 
-        help='The IP address of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
+        help='The IP address of controller.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table, for IP Address.')
     parser.add_argument('--port',required=True,
-        help='The TCP port number of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
+        help='The TCP port number of REST api.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table for REST API Port.')
     return parser
 
 def UpdateEndpoints(authToken, appId, endpoints):
 
-    # Add any new endpoints detected from ODL-S events
+    # Add any new endpoints detected from events
     while not odlsQueue.empty():
         data = odlsQueue.get()
         endpointId = data['id']
@@ -426,7 +426,7 @@ def UserCmdRestartApp(authToken, args, parser, appId, thread):
 
 class ReceiveOdlsEvents(threading.Thread):
     """ 
-        A thread class that will receive events from ODL-S
+        A thread class that will receive events
     """
     
     def __init__ (self, authToken, subId, q):
@@ -461,13 +461,13 @@ class ReceiveOdlsEvents(threading.Thread):
     def run(self):
         global odlsBaseUrl
         # This calls a subscription url as a streaming http interface.
-        # It is waiting for an event message from ODL-S.
-        # ODL-S sends the event message one line at a time across the stream.
-        # ODL-S sends each line beginning with a '<linetype>:'.  
+        # It is waiting for an event message.
+        # event message is sent one line at a time across the stream.
+        # each line beginning with a '<linetype>:'.  
         # <linetype> may be 'event:' which indicates a new event, after the : is the type of event
         # <linetype> may be 'data:' which indicates json data, this will be data associated with
         #            the preceding event
-        # ODL-S sends an empty line at the end of sending an event.
+        # an empty line is sent at the end of sending an event.
         # A typical event may look like (ignore the # at start...that is python comment):
         #     event: unmanagedEndPoint
         #     data: <some JSON data>
@@ -491,27 +491,27 @@ class ReceiveOdlsEvents(threading.Thread):
                 r = requests.get(url, headers=headers, stream=True)
 
                 if (self.stopped()):
-                    print"            -->Terminating thread that listens for ODL-S events due to stop signal from main app."
+                    print"            -->Terminating thread that listens for events due to stop signal from main app."
                     break
 
                 jsonBuffer=''
                 for line in r.iter_lines(chunk_size=1):
                     if (len(line) <= 0):
-                        #empty line indicates end of an event report from ODL-S.
+                        #empty line indicates end of an event report.
                         break
                     if line:
-                        #event lines from ODL-S begin with 'event:'
-                        #json lines the describe event from ODL-S begin with 'data:'
+                        #event lines begin with 'event:'
+                        #json lines the describe event begin with 'data:'
                         split = line.split(":",1)
                         if split[0] in ("data"):
                             jsonBuffer=jsonBuffer+split[1]
                         elif split[0] in ("event"):
                             if split[1] in (" keepAlive"):
                                 if (self.logging()):
-                                    print "                -->ODL-S event: keep alive signal (ODL-S to App connection is good)."
+                                    print "                -->event: keep alive signal (App connection is good)."
                             elif split[1] in (" unmanagedEndPoint"):
                                 if (self.logging()):
-                                    print "                -->ODL-S event: unmanaged endpoint connected, collecting its data..."
+                                    print "                -->event: unmanaged endpoint connected, collecting its data..."
                 # if we received 'data:' lines           
                 if (len(jsonBuffer) > 0):
                     r = json.loads(jsonBuffer)
@@ -523,10 +523,10 @@ class ReceiveOdlsEvents(threading.Thread):
                         endpointId = data['id']
                         endpointMac = data['mac']
                         if (self.logging()):
-                            print "                -->ODL-S event:  unmanaged endpoint collected and added to list of endpoints: " + endpointMac
+                            print "                -->event:  unmanaged endpoint collected and added to list of endpoints: " + endpointMac
         except Exception as inst:
             print " "
-            print "Exception in ODL-S Events Thread.  Terminating application." 
+            print "Exception in Events Thread.  Terminating application." 
             print type(inst)     # the exception instance
             print inst.args      # arguments stored in .args
             print inst           # __str__ allows args to be printed directly
@@ -537,17 +537,17 @@ class ReceiveOdlsEvents(threading.Thread):
 def StartApplication(args, parser):
     authToken=""
     try:
-        #This starts an ODL-S application.  
+        #This starts an application.  
         #It returns:
         #  A python dictionary of the format:
         #     {'authToken':<authorization token>
-        #      'appId':<application id for the new ODL-S application created>, 
+        #      'appId':<application id for the new application created>, 
         #      'unblockPolicyId':<unblock policy id>,
         #      'blockPolicyId':<policy id for block traffic policy>,
-        #      'subId':<subscription id for subscription for ODL-S events>}
-        #      'thread':<Thread that is listening to ODL-S events>}
+        #      'subId':<subscription id for subscription for events>}
+        #      'thread':<Thread that is listening to events>}
         #      'selectedEp':<The key into 'endpoints' of the currently selected Endpoint...or "">}
-        #      'endpoints':<The list of endpoints that have been detected by ODL-S>}
+        #      'endpoints':<The list of endpoints that have been detected>}
         print " "
         print "Obtaining authorization token..."
         authToken = GetAuthToken(args.id,args.secret)
@@ -568,9 +568,9 @@ def StartApplication(args, parser):
         subId = CreateSubscription(authToken, appId)
         print "    ...subscription created with id:" + subId
         print " "
-        print "Starting thread to listen for ODL-S events on subscription..."
+        print "Starting thread to listen for events on subscription..."
         odlsThread = ReceiveOdlsEvents(authToken, subId, odlsQueue)
-        odlsThread.setName('ODL-S Event Listener Thread')
+        odlsThread.setName('Event Listener Thread')
         odlsThread.start()
         print "    ...thread started."
 
@@ -599,7 +599,7 @@ def StartApplication(args, parser):
 
         print ""
         print "Now that the application is deleted endpoints connected to the switch will continue to have connectivity."
-        print "If you go to your ODL-S dashboard (sdn-developer.elbrys.com) and refresh the screen you will "
+        print "If you go to  sdn-developer.elbrys.com and refresh the screen you will "
         print " no longer see this application listed."
 
 
@@ -614,7 +614,7 @@ def main():
     # The version of the application
     #  1.0 - initial version
     version="1.0"
-    print "ODL-S App3"
+    print "App3"
     print "Version: " + version
     print __doc__
 
@@ -625,7 +625,7 @@ def main():
 
 
     odlsBaseUrl = "http://"+args.server+":"+args.port+"/ape/v1"
-    print "ODL-S API is at: " + odlsBaseUrl
+    print "API is at: " + odlsBaseUrl
 
     # --------------------------------
     #    Main application
@@ -661,9 +661,9 @@ def main():
             print "    (c)hange policy of selected endpoint"
             print "    (k)ill and restart this app"
             if (thread.logging()):
-                print "    (t)oggle ODL-S event logging (currently enabled)"
+                print "    (t)oggle event logging (currently enabled)"
             else:
-                print "    (t)oggle ODL-S event logging (currently disabled)"
+                print "    (t)oggle event logging (currently disabled)"
             print "    (h)elp"
             print "    (q)uit"
             ch = raw_input("Enter an action from above list and hit enter: ")
@@ -714,15 +714,15 @@ def main():
 
         print ""
         print "Now that the application is deleted endpoints connected to the switch will continue to have connectivity."
-        print "If you go to your ODL-S dashboard (sdn-developer.elbrys.com) and refresh the screen you will "
+        print "If you go to sdn-developer.elbrys.com and refresh the screen you will "
         print " no longer see this application listed."
     
 
 
 if __name__ == "__main__": 
-  # The BASE url where the ODL-S RESTful api listens
+  # The BASE url where the RESTful api listens
   thread = None
-  odlsBaseUrl = "http://app.elbrys.com:8080/ape/v1";
+  odlsBaseUrl = "http://placeholder.for.rest.api.com";
   odlsQueue = Queue.Queue()
   unblockPolicyDefinition = {
                'name': 'unblocked',

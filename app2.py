@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
 DESCRIPTION:
-    This is an extremely simple Python application that demonstrates how to use Elbrys ODL as a service - ODL-S (dev.elbrys.com) to
+    This is an extremely simple Python application that demonstrates how to use Elbrys SDN Developer Lab (dev.elbrys.com) to
     control endpoint user sessions access to the network.
 
-    This application will connect to one of the switches that you have connected in the ODL-S portal (sdn-developer.elbrys.com)
+    This application will connect to one of the switches that you have connected in sdn-developer.elbrys.com
     and demonstrate blocking and unblocking of network traffic for any device connected to the switch. 
 
 PRE-REQUISITES:
@@ -99,7 +99,7 @@ def CreateApp(authToken, switch, parser):
     RemoveZombieApps(authToken, switch)
 
     url = odlsBaseUrl + '/applications'
-    payload = {'name': 'ODL-S Demo App2 - Connected to switch: ' + switch,
+    payload = {'name': 'Demo App2 - Connected to switch: ' + switch,
                 'scope': {'vnets':[switch]}}
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -166,7 +166,7 @@ def CreateUnblockPolicy(authToken, appId):
 
 def CreateSubscription(authToken, appId):
     global odlsBaseUrl
-    # This calls the ODL-S api to create a subscription
+    # This calls the api to create a subscription
     # RETURNS: subscription identifier
     url = odlsBaseUrl + '/applications/' + appId + '/subscriptions'
     payload = {'type': 'httpSSE'}
@@ -183,13 +183,13 @@ def CreateSubscription(authToken, appId):
 def WaitForEvents(authToken, subId, appId, policyId):
     global odlsBaseUrl
     # This calls a subscription url as a streaming http interface.
-    # It is waiting for an event message from ODL-S.
-    # ODL-S sends the event message one line at a time across the stream.
-    # ODL-S sends each line beginning with a '<linetype>:'.  
+    # It is waiting for an event message.
+    # The event message is sent one line at a time across the stream.
+    # Each line begins with a '<linetype>:'.  
     # <linetype> may be 'event:' which indicates a new event, after the : is the type of event
     # <linetype> may be 'data:' which indicates json data, this will be data associated with
     #            the preceding event
-    # ODL-S sends an empty line at the end of sending an event.
+    # An empty line is sent at the end of sending an event.
     # A typical event may look like (ignore the # at start...that is python comment):
     #     event: unmanagedEndPoint
     #     data: <some JSON data>
@@ -214,22 +214,22 @@ def WaitForEvents(authToken, subId, appId, policyId):
           jsonBuffer=''
           for line in r.iter_lines(chunk_size=1):
               if (len(line) <= 0):
-                  #empty line indicates end of an event report from ODL-S.
+                  #empty line indicates end of an event report.
                   break
               if line:
-                  #json lines from ODL-S begin with 'data:' <json>
+                  #json lines begin with 'data:' <json>
                   split = line.split(":",1)
                   if split[0] in ("data"):
-                     print "......receiving json data from ODL-S server..."
+                     print "......receiving json data from controller..."
                      jsonBuffer=jsonBuffer+split[1]
                   elif split[0] in ("event"):
                      if split[1] in (" keepAlive"):
-                         print "...heart beat event received from ODL-S server..."
+                         print "...heart beat event received from controller..."
                      elif split[1] in (" unmanagedEndPoint"):
-                         print "...receiving an unmanaged endpoint event from ODL-S server"
+                         print "...receiving an unmanaged endpoint event from controller"
           # if we received 'data:' lines           
           if (len(jsonBuffer) > 0):
-            print "...data event received from ODL-S."
+            print "...data event received from controller."
             r = json.loads(jsonBuffer)
             print json.dumps(r)
             eventId = r['id']
@@ -249,7 +249,7 @@ def WaitForEvents(authToken, subId, appId, policyId):
 
 def SetPolicyOnEvent(authToken,appId,eventId,policyId):
     global odlsBaseUrl
-    # This calls the ODL-S api to connect a policy to an unmanaged endpoint
+    # This calls the OpenNAC api to connect a policy to an unmanaged endpoint
     # RETURNS: <nothing>
     url = odlsBaseUrl + '/applications/' + appId + '/requests/' + eventId
     payload = {'policy': policyId }
@@ -272,15 +272,15 @@ def GetCommandLineParser():
     # This method will process the command line parameters
     parser = argparse.ArgumentParser(description='Simple SDN Application to block/unblock devices connected to switch.')
     parser.add_argument('--id',required=True,
-        help='your ODL-S Application id.  Go to sdn-developer.elbrys.com, logon, select "My Account" in top right.')
+        help='your Application id.  Go to sdn-developer.elbrys.com, logon, look for SDN App ID in SDN Applications table.')
     parser.add_argument('--secret',required=True,
-        help='your ODL-S Application secret. Go to sdn-developer.elbrys.com, logon, select "My Account", select "Edit Account", select the "eyeball" icon next to password.')
+        help='your Application secret. Go to sdn-developer.elbrys.com, logon, look for SDN App Secret in SDN Applications table, select the "eyeball" icon next to password.')
     parser.add_argument('--switch',required=True,
-        help='the Datapath Id (DPID) for the switch connected in ODL-S dashboard without ":" e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in "Devices" table')
+        help='the Datapath Id (DPID) for the switch without ":" e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in "Devices" table')
     parser.add_argument('--server',required=True,
-        help='The IP address of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
+        help='The IP address.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table for IP Address.')
     parser.add_argument('--port',required=True,
-        help='The TCP port number of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
+        help='The TCP port number for REST API.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table for REST API Port.')
     return parser
  
 def main(): 
@@ -289,9 +289,9 @@ def main():
     # 1.0 - initial version
     # 1.1 - added code to remove apps for selected vnet before creating new app
     version="1.1"
-    print "ODL-S App2"
+    print "App2"
     print "Version: " + version
-    print "An application to demonstrate use of ODL-S subscription."
+    print "An application to demonstrate use of subscription."
     print __doc__
 
     # --------------------------------
@@ -300,7 +300,7 @@ def main():
     args = parser.parse_args()  
       
     odlsBaseUrl = "http://"+args.server+":"+args.port+"/ape/v1"
-    print "ODL-S API is at: " + odlsBaseUrl
+    print "API is at: " + odlsBaseUrl
 
     # --------------------------------
     #    Main application
@@ -327,7 +327,7 @@ def main():
                     print "...subscription created with id:" + subId
                     print "Now that an application is connected to your "
                     print " switch any traffic to/from connected user devices will be blocked until a policy is defined."
-                    print " Also, you can go to your ODL-S dashboard (sdn-developer.elbrys.com) and refresh the screen "
+                    print " Also, you can go to sdn-developer.elbrys.com and refresh the screen "
                     print " you will see this application listed in the applications table."
                     print " "
                     print "This application has created a subscription and will be receiving events from your switch.  "
@@ -350,12 +350,12 @@ def main():
                 print "...application deleted."
                 print ""
                 print "Now that the application is deleted you will continue to have connectivity."
-                print "If you go to your ODL-S dashboard (sdn-developer.elbrys.com) and refresh the screen you will "
+                print "If you go to sdn-developer.elbrys.com and refresh the screen you will "
                 print " no longer see this application listed."
 
  
-# The BASE url where the ODL-S RESTful api listens
-odlsBaseUrl = "http://app.elbrys.com:8080/ape/v1";
+# The BASE url where the RESTful api listens
+odlsBaseUrl = "http://placeholder.for.rest.api.com";
 
 if __name__ == "__main__": 
   main()

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
 DESCRIPTION:
-    This is an extremely simple Python application that demonstrates how to use Elbrys ODL as a service - ODL-S (dev.elbrys.com) to
+    This is an extremely simple Python application that demonstrates how to use Elbrys SDN Developer Lab (dev.elbrys.com) to
     control endpoint user sessions access to the network.
 
-    This application will connect to one of the switches that you have connected in the ODL-S portal (sdn-developer.elbrys.com)
+    This application will connect to one of the switches that you have connected in the SDN Developer Lab (sdn-developer.elbrys.com)
     and demonstrate blocking and unblocking of network traffic for any device connected to the switch. 
 
 PRE-REQUISITES:
@@ -96,7 +96,7 @@ def CreateApp(authToken, switch, parser):
     RemoveZombieApps(authToken, switch)
 
     url = odlsBaseUrl + '/applications'
-    payload = {'name': 'FirstSdnApp/App1 - Example ODL-S for switch: ' + switch,
+    payload = {'name': 'FirstSdnApp/App1 - Example OpenNAC App for switch: ' + switch,
                 'scope': {'vnets':[switch]}}
     headers = {'content-type': 'application/json',
                'Authorization': 'bearer ' + authToken}
@@ -172,15 +172,15 @@ def GetCommandLineParser():
     # This method will process the command line parameters
     parser = argparse.ArgumentParser(description='Simple SDN Application to block/unblock devices connected to switch.')
     parser.add_argument('--id',required=True,
-        help='your ODL-S Application id.  Go to sdn-developer.elbrys.com, logon, select "My Account" in top right.')
+        help='your Application id.  Go to sdn-developer.elbrys.com, logon, SDN Applications table for SDN App ID.')
     parser.add_argument('--secret',required=True,
-        help='your ODL-S Application secret. Go to sdn-developer.elbrys.com, logon, select "My Account", select "Edit Account", select the "eyeball" icon next to password.')
+        help='your Application secret. Go to sdn-developer.elbrys.com, logon, look at SDN Applications table for SDN App Secret and select the "eyeball" icon.')
     parser.add_argument('--switch',required=True,
-        help='the Datapath Id (DPID) for the switch connected in ODL-S dashboard without ":" e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in "Devices" table')
+        help='the Datapath Id (DPID) for the switch connected without ":" e.g.  ccfa00b07b95  Go to sdn-developer.elbrys.com, logon, look in "Devices" table')
     parser.add_argument('--server',required=True, 
-        help='The IP address of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
+        help='The IP address of controller.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table for IP Address.')
     parser.add_argument('--port',required=True,
-        help='The TCP port number of your ODL-S server.  Go to sdn-developer.elbrys.com, logon, look at "Controller" table.')
+        help='The TCP port number for REST API .  Go to sdn-developer.elbrys.com, logon, look at "Controller" table for REST API Port.')
     return parser
  
 def main(): 
@@ -189,9 +189,9 @@ def main():
     # 1.0 - initial version
     # 1.1 - added code to remove apps for selected vnet before creating new app
     version="1.1"
-    print "ODL-S App1 (FirstSdnApp)"
+    print "App1 (FirstSdnApp)"
     print "Version: " + version
-    print "A very simple 'hello world' application that uses ODL-S."
+    print "A very simple 'hello world' application that uses SDN Developer Lab."
     print __doc__
 
     # --------------------------------
@@ -201,7 +201,7 @@ def main():
 
 
     odlsBaseUrl = "http://"+args.server+":"+args.port+"/ape/v1"
-    print "ODL-S API is at: " + odlsBaseUrl
+    print "REST API is at: " + odlsBaseUrl
 
     # --------------------------------
     #    Main application
@@ -219,7 +219,7 @@ def main():
                 print " "
                 print "Now that an application is connected to your "
                 print " switch any traffic to/from connected user devices will be blocked until a policy is defined."
-                print " Also, you can go to your ODL-S dashboard (sdn-developer.elbrys.com) and refresh the screen "
+                print " Also, you can go to sdn-developer.elbrys.com and refresh the screen "
                 print " you will see this application listed in the applications table."
                 print " "
                 print "Connect a user device (laptop, tablet, phone) to a port on your network device."
@@ -248,12 +248,12 @@ def main():
                 print "...application deleted."
                 print ""
                 print "Now that the application is deleted you will continue to have connectivity."
-                print "If you go to your ODL-S dashboard (sdn-developer.elbrys.com) and refresh the screen you will "
+                print "If you go to your sdn-developer.elbrys.com and refresh the screen you will "
                 print " no longer see this application listed."
 
  
-# The BASE url where the ODL-S RESTful api listens
-odlsBaseUrl = "http://app.elbrys.com:8080/ape/v1";
+# The BASE url where the RESTful api listens
+odlsBaseUrl = "http://placeholder.for.rest.api.com";
 
 if __name__ == "__main__": 
   main()
