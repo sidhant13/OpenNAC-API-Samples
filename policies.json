@@ -27,3 +27,4 @@
       {"type": "uriTrack"}
         ] } ] }
 ]
+//python FirstSwitch.py --id d461f2966b4c4cec983432c800e629c6 --server 54.165.249.196 --port 6702
